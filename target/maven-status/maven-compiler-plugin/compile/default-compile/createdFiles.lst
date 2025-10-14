@@ -1,0 +1,11 @@
+ng\inscripciones_sb\service\grupos\IGrupos.class
+ng\inscripciones_sb\model\Alumno.class
+ng\inscripciones_sb\service\alumno\IAlumno.class
+ng\inscripciones_sb\service\alumno\AlumnoService.class
+ng\inscripciones_sb\repository\AlumnoRepo.class
+ng\inscripciones_sb\controller\MainController.class
+ng\inscripciones_sb\service\grupos\GrupoService.class
+ng\inscripciones_sb\repository\GruposRepo.class
+ng\inscripciones_sb\model\Invitaciones.class
+ng\inscripciones_sb\InscripcionesSbApplication.class
+ng\inscripciones_sb\model\Grupos.class
