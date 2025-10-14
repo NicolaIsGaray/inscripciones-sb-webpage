@@ -25,7 +25,7 @@ import java.util.zip.ZipOutputStream;
 
 @RestController
 @RequestMapping("inscripciones-sb-app")
-@CrossOrigin(value = "${cors.allowed.origins}")
+@CrossOrigin(value = "/inscripciones-sb-app")
 public class MainController {
     private Logger logger = LoggerFactory.getLogger(MainController.class);
 
