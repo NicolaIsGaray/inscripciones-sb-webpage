@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface AlumnoRepo extends MongoRepository<Alumno, String> {
     Optional<Alumno> findByDni(String dni);
+    Boolean existsByDni(String dni);
     Optional<Alumno> deleteByDni(String dni);
 }

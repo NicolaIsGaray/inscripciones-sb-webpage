@@ -9,12 +9,17 @@ import ng.inscripciones_sb.service.grupos.GrupoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -154,6 +159,44 @@ public class MainController {
         }
     }
 
+    @GetMapping("/list")
+    public ResponseEntity<Map<String, Object>> getPreAlumnoList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<Alumno> alumnosPage = alumnoService.listPreAlumnos(page, size);
 
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("alumnos", alumnosPage.getContent());
+        response.put("totalAlumnos", alumnosPage.getTotalElements());
+        response.put("totalPages", alumnosPage.getTotalPages());
+        response.put("currentPage", alumnosPage.getNumber());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/upload-excel")
+    public ResponseEntity<?> uploadExcel(@RequestParam("file")MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("El archivo está vacío.");
+        }
+
+        if (!file.getOriginalFilename().endsWith(".xlsx")) {
+            return ResponseEntity.badRequest().body("Debe ser un archivo Excel");
+        }
+
+        try {
+            List<Alumno> alumnos = alumnoService.uploadAlumnosExcel(file);
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Archivo procesado correctamente.",
+                    "alumnosCreados", alumnos.size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    "Error procesando el archivo: " + e.getMessage()
+            );
+        }
+    }
 
 }

@@ -5,9 +5,19 @@ import ng.inscripciones_sb.model.Grupos;
 import ng.inscripciones_sb.model.Invitaciones;
 import ng.inscripciones_sb.repository.AlumnoRepo;
 import ng.inscripciones_sb.repository.GruposRepo;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,15 +37,63 @@ public class AlumnoService implements IAlumno {
     }
 
     @Override
+    public Page<Alumno> listPreAlumnos(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return alumnoRepo.findAll(pageable);
+    }
+
+    @Override
+    public List<Alumno> uploadAlumnosExcel(MultipartFile file) throws IOException {
+        List<Alumno> alumnos = new ArrayList<>();
+
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                Cell nombreCell = row.getCell(1);
+                String nombre = obtenerValorCelda(nombreCell);
+
+                Cell dniCell = row.getCell(0);
+                String dni = obtenerValorCelda(dniCell);
+
+                if (nombre != null && !nombre.isBlank() && dni != null && !dni.isBlank()) {
+                    if (!alumnoRepo.existsByDni(dni)) {
+                        Alumno alumno = new Alumno();
+                        alumno.setName(nombre.trim());
+                        alumno.setDni(dni.trim());
+                        alumnos.add(alumno);
+                    }
+                }
+            }
+        }
+
+        return alumnoRepo.saveAll(alumnos);
+    }
+
+    private String obtenerValorCelda(Cell cell) {
+        if (cell == null) return null;
+
+        return switch (cell.getCellType()) {
+            case STRING -> cell.getStringCellValue();
+            case NUMERIC ->
+                    String.valueOf((long) cell.getNumericCellValue());
+            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
+            case FORMULA -> cell.getCellFormula();
+            default -> null;
+        };
+    }
+
+    @Override
     public Alumno saveAlumno(Alumno alumno) {
-        Alumno registered = this.alumnoRepo.save(alumno);
-        return registered;
+        return this.alumnoRepo.save(alumno);
     }
 
     @Override
     public Alumno searchByDni(String dni) {
-        Alumno alumno = alumnoRepo.findByDni(dni).orElse(null);
-        return alumno;
+        return alumnoRepo.findByDni(dni).orElse(null);
     }
 
     public Alumno addInvitacion(String id, Invitaciones invitation) {
