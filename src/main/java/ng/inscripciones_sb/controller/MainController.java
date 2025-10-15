@@ -9,6 +9,7 @@ import ng.inscripciones_sb.service.grupos.GrupoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -140,21 +141,22 @@ public class MainController {
 
     @GetMapping("/descargar-pdfs")
     public void descargarPDF(HttpServletResponse response) throws IOException {
-        String nombreArchivo = "Inscripción Simón Bolívar.pdf";
+        String nombreArchivo = "Inscripcion_Simon_Bolivar.pdf";
+        ClassPathResource resource = new ClassPathResource("/pdf/" + nombreArchivo);
 
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + nombreArchivo + "\"");
+        if (resource.exists()) {
+            response.setContentType("application/pdf");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + nombreArchivo + "\"");
 
-        try (InputStream inputStream = getClass().getResourceAsStream("/pdf/" + nombreArchivo)) {
-            if (inputStream != null) {
+            try (InputStream inputStream = resource.getInputStream()) {
                 inputStream.transferTo(response.getOutputStream());
                 response.flushBuffer();
-            } else {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                response.getWriter().write("Archivo no encontrado: " + nombreArchivo);
             }
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Archivo no encontrado");
         }
     }
+
 
     @GetMapping("/list")
     public ResponseEntity<Map<String, Object>> getPreAlumnoList(
