@@ -20,8 +20,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
@@ -141,20 +139,19 @@ public class MainController {
     }
 
     @GetMapping("/descargar-pdfs")
-    public void descargarPDFs(HttpServletResponse response) throws IOException {
-        response.setContentType("application/zip");
-        response.setHeader("Content-Disposition", "attachment; filename=documentación-inscripciones-sb-2026.zip");
+    public void descargarPDF(HttpServletResponse response) throws IOException {
+        String nombreArchivo = "Inscripción Simón Bolívar.pdf";
 
-        try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
-            String[] archivos = {"FICHA DE DIFUSIÓN DE IMAGEN 2026.pdf", "FICHA DE INSCRIPCIÓN 2026.pdf", "FICHA DE SALUD 2026.pdf"};
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + nombreArchivo + "\"");
 
-            for (String nombre : archivos) {
-                InputStream inputStream = getClass().getResourceAsStream("/pdfs/" + nombre);
-                if (inputStream != null) {
-                    zipOut.putNextEntry(new ZipEntry(nombre));
-                    inputStream.transferTo(zipOut);
-                    zipOut.closeEntry();
-                }
+        try (InputStream inputStream = getClass().getResourceAsStream("/pdf/" + nombreArchivo)) {
+            if (inputStream != null) {
+                inputStream.transferTo(response.getOutputStream());
+                response.flushBuffer();
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.getWriter().write("Archivo no encontrado: " + nombreArchivo);
             }
         }
     }
