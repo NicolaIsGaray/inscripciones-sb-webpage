@@ -23,9 +23,9 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+@CrossOrigin(value = "http://localhost:4200")
 @RestController
-@RequestMapping("inscripciones-sb-app")
-@CrossOrigin(value = "/inscripciones-sb-app")
+@RequestMapping("/")
 public class MainController {
     private Logger logger = LoggerFactory.getLogger(MainController.class);
 
