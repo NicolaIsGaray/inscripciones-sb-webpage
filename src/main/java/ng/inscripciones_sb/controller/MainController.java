@@ -24,7 +24,7 @@ import java.util.Map;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
-@RequestMapping("/inscripciones-sb-app")
+@RequestMapping("/")
 public class MainController {
     private Logger logger = LoggerFactory.getLogger(MainController.class);
 
