@@ -89,7 +89,19 @@ public class MainController {
         return ResponseEntity.ok(toUpdate);
     }
 
-    @GetMapping("/grupos")
+    @DeleteMapping("/borrar-alumno/{dni}")
+    public ResponseEntity<?> deleteAlumno(@PathVariable String dni) {
+        Alumno toDelete = this.alumnoService.searchByDni(dni);
+
+        if (toDelete == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        this.alumnoService.deleteAlumno(dni);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/grupos-api")
     public List<Grupos> getGrupos() {
         List<Grupos> grupos = this.grupoService.listGrupos();
 
