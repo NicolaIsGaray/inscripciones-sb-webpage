@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +73,35 @@ public class AlumnoService implements IAlumno {
         }
 
         return alumnoRepo.saveAll(alumnos);
+    }
+
+    @Override
+    public ByteArrayInputStream exportAlumnosToExcel() throws IOException {
+        String[] columns = {"Nombre", "DNI", "Email"};
+        try (
+                Workbook workbook = new XSSFWorkbook();
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ) {
+            Sheet sheet = workbook.createSheet("Alumnos");
+
+            Row headerRow = sheet.createRow(0);
+            for (int col = 0; col < columns.length; col++) {
+                Cell cell = headerRow.createCell(col);
+                cell.setCellValue(columns[col]);
+            }
+
+            List<Alumno> alumnos = this.listAlumno();
+            int rowIdx = 1;
+            for (Alumno alumno : alumnos) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(alumno.getName());
+                row.createCell(1).setCellValue(alumno.getDni());
+                row.createCell(2).setCellValue(alumno.getEmail());
+            }
+
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+        }
     }
 
     private String obtenerValorCelda(Cell cell) {

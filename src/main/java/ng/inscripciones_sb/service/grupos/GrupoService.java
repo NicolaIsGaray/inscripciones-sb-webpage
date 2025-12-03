@@ -5,9 +5,17 @@ import ng.inscripciones_sb.model.Grupos;
 import ng.inscripciones_sb.model.Invitaciones;
 import ng.inscripciones_sb.repository.AlumnoRepo;
 import ng.inscripciones_sb.repository.GruposRepo;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +41,11 @@ public class GrupoService implements IGrupos{
         if (existingGroup.isPresent()) {
             throw new RuntimeException("El líder ya tiene un grupo creado.");
         }
+
+        // Asignar nuevo número de grupo de forma segura
+        Optional<Grupos> lastGroup = gruposRepo.findTopByGroupNumberIsNotNullOrderByGroupNumberDesc();
+        int nextGroupNumber = lastGroup.map(g -> g.getGroupNumber() + 1).orElse(1);
+        grupo.setGroupNumber(nextGroupNumber);
 
         Grupos grupoGuardado = gruposRepo.save(grupo);
 
@@ -89,6 +102,48 @@ public class GrupoService implements IGrupos{
         }
 
         alumnoRepo.save(alumno);
+    }
+
+    @Override
+    public ByteArrayInputStream exportGruposToExcel() throws IOException {
+        String[] columns = {"Número de Grupo", "Rol", "Nombre del Integrante", "DNI"};
+        try (
+                Workbook workbook = new XSSFWorkbook();
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ) {
+            Sheet sheet = workbook.createSheet("Grupos");
+
+            Row headerRow = sheet.createRow(0);
+            for (int col = 0; col < columns.length; col++) {
+                Cell cell = headerRow.createCell(col);
+                cell.setCellValue(columns[col]);
+            }
+
+            List<Grupos> grupos = this.listGrupos();
+            int rowIdx = 1;
+            for (Grupos grupo : grupos) {
+                // Fila para el líder
+                Row leaderRow = sheet.createRow(rowIdx++);
+                leaderRow.createCell(0).setCellValue(grupo.getGroupNumber());
+                leaderRow.createCell(1).setCellValue("Líder");
+                leaderRow.createCell(2).setCellValue(grupo.getLeader().getName());
+                leaderRow.createCell(3).setCellValue(grupo.getLeader().getDni());
+
+                // Filas para los miembros
+                if (grupo.getMembers() != null) {
+                    for (Alumno miembro : grupo.getMembers()) {
+                        Row memberRow = sheet.createRow(rowIdx++);
+                        memberRow.createCell(0).setCellValue(grupo.getGroupNumber());
+                        memberRow.createCell(1).setCellValue("Miembro");
+                        memberRow.createCell(2).setCellValue(miembro.getName());
+                        memberRow.createCell(3).setCellValue(miembro.getDni());
+                    }
+                }
+            }
+
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+        }
     }
 
     @Override

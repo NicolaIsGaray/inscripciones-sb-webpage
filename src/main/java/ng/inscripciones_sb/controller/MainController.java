@@ -6,6 +6,7 @@ import ng.inscripciones_sb.model.Grupos;
 import ng.inscripciones_sb.model.Invitaciones;
 import ng.inscripciones_sb.service.alumno.AlumnoService;
 import ng.inscripciones_sb.service.grupos.GrupoService;
+import org.apache.poi.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -208,6 +210,24 @@ public class MainController {
                     "Error procesando el archivo: " + e.getMessage()
             );
         }
+    }
+
+    @GetMapping("/export-alumnos")
+    public void exportAlumnos(HttpServletResponse response) throws IOException {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=alumnos.xlsx");
+        ByteArrayInputStream stream = alumnoService.exportAlumnosToExcel();
+        IOUtils.copy(stream, response.getOutputStream());
+        response.flushBuffer();
+    }
+
+    @GetMapping("/export-grupos")
+    public void exportGrupos(HttpServletResponse response) throws IOException {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=grupos.xlsx");
+        ByteArrayInputStream stream = grupoService.exportGruposToExcel();
+        IOUtils.copy(stream, response.getOutputStream());
+        response.flushBuffer();
     }
 
 }

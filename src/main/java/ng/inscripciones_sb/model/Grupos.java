@@ -17,6 +17,7 @@ public class Grupos {
     @Id
     private String id;
 
+    private Integer groupNumber;
     private Alumno leader;
     private List<Alumno> members = new ArrayList<>();
     private List<Alumno> pending = new ArrayList<>();
