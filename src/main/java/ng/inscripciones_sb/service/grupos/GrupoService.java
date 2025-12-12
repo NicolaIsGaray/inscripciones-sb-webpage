@@ -5,10 +5,7 @@ import ng.inscripciones_sb.model.Grupos;
 import ng.inscripciones_sb.model.Invitaciones;
 import ng.inscripciones_sb.repository.AlumnoRepo;
 import ng.inscripciones_sb.repository.GruposRepo;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -124,7 +121,8 @@ public class GrupoService implements IGrupos{
             for (Grupos grupo : grupos) {
                 // Fila para el líder
                 Row leaderRow = sheet.createRow(rowIdx++);
-                leaderRow.createCell(0).setCellValue(grupo.getGroupNumber());
+                Integer groupNumber = grupo.getGroupNumber();
+                leaderRow.createCell(0).setCellValue(groupNumber != null ? groupNumber : 0);
                 leaderRow.createCell(1).setCellValue("Líder");
                 leaderRow.createCell(2).setCellValue(grupo.getLeader().getName());
                 leaderRow.createCell(3).setCellValue(grupo.getLeader().getDni());
@@ -133,7 +131,7 @@ public class GrupoService implements IGrupos{
                 if (grupo.getMembers() != null) {
                     for (Alumno miembro : grupo.getMembers()) {
                         Row memberRow = sheet.createRow(rowIdx++);
-                        memberRow.createCell(0).setCellValue(grupo.getGroupNumber());
+                        memberRow.createCell(0).setCellValue(groupNumber != null ? groupNumber : 0);
                         memberRow.createCell(1).setCellValue("Miembro");
                         memberRow.createCell(2).setCellValue(miembro.getName());
                         memberRow.createCell(3).setCellValue(miembro.getDni());
